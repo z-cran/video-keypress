@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { notify } from "../../lib/noticeStore.ts";
+import { useBehaviorsStore } from "../behaviors/behaviorsStore.ts";
 import {
   resolveKey,
   type KeyLike,
@@ -7,6 +8,7 @@ import {
 } from "../behaviors/hotkeys.ts";
 import { FINE_SEEK_STEP, formatRate, SEEK_STEP } from "../player/playback.ts";
 import { usePlayerStore } from "../player/playerStore.ts";
+import { useSessionStore } from "./sessionStore.ts";
 
 const OVERLAY = '[role="dialog"], [role="menu"], [role="listbox"]';
 const NON_TEXT_INPUTS = new Set([
@@ -82,30 +84,70 @@ function runPlayerAction(action: PlayerAction) {
  */
 export function useGlobalKeys() {
   useEffect(() => {
+    const session = useSessionStore.getState;
+
     const onKeyDown = (ev: KeyboardEvent) => {
+      // Before a video loads, keys keep their normal page behavior.
       if (!usePlayerStore.getState().ready) return;
-      const resolved = resolveKey(toKeyLike(ev), [], "down");
-      if (resolved.kind === "player") {
-        ev.preventDefault();
-        ev.stopPropagation();
-        if (resolved.action) runPlayerAction(resolved.action);
+      const { behaviors } = useBehaviorsStore.getState();
+      const resolved = resolveKey(toKeyLike(ev), behaviors, "down");
+      switch (resolved.kind) {
+        case "player":
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (resolved.action) runPlayerAction(resolved.action);
+          return;
+        case "behavior": {
+          const behavior = behaviors.find((b) => b.id === resolved.behaviorId);
+          ev.preventDefault();
+          if (behavior) session().press(behavior, "key");
+          return;
+        }
+        case "releaseKeyHolds":
+          session().releaseKeyHolds();
+          return;
+        case "ignore":
+          return;
       }
     };
 
     const onKeyUp = (ev: KeyboardEvent) => {
-      if (!usePlayerStore.getState().ready) return;
-      const resolved = resolveKey(toKeyLike(ev), [], "up");
-      if (resolved.kind === "player") {
+      const { behaviors } = useBehaviorsStore.getState();
+      const resolved = resolveKey(toKeyLike(ev), behaviors, "up");
+      if (resolved.kind === "behavior") {
+        session().release(resolved.behaviorId, "key");
+      } else if (
+        resolved.kind === "player" &&
+        usePlayerStore.getState().ready
+      ) {
         ev.preventDefault();
         ev.stopPropagation();
+      }
+    };
+
+    // Keyups are lost when focus leaves the window or moves into a dialog,
+    // so an open hold would never end.
+    const releaseKeyHolds = () => session().releaseKeyHolds();
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") releaseKeyHolds();
+    };
+    const onFocusIn = (ev: FocusEvent) => {
+      if (ev.target instanceof Element && ev.target.closest(OVERLAY)) {
+        releaseKeyHolds();
       }
     };
 
     window.addEventListener("keydown", onKeyDown, { capture: true });
     window.addEventListener("keyup", onKeyUp, { capture: true });
+    window.addEventListener("blur", releaseKeyHolds);
+    document.addEventListener("visibilitychange", onVisibility);
+    document.addEventListener("focusin", onFocusIn);
     return () => {
       window.removeEventListener("keydown", onKeyDown, { capture: true });
       window.removeEventListener("keyup", onKeyUp, { capture: true });
+      window.removeEventListener("blur", releaseKeyHolds);
+      document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("focusin", onFocusIn);
     };
   }, []);
 }

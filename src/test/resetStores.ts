@@ -2,6 +2,8 @@ import type { StoreApi, UseBoundStore } from "zustand";
 import { useBehaviorsStore } from "../features/behaviors/behaviorsStore.ts";
 import { useSettingsDialog } from "../features/behaviors/settingsDialogStore.ts";
 import { usePlayerStore } from "../features/player/playerStore.ts";
+import { useSessionStore } from "../features/recording/sessionStore.ts";
+import { useConfirmStore } from "../lib/confirmStore.ts";
 import { useNoticeStore } from "../lib/noticeStore.ts";
 
 function reset<T>(store: UseBoundStore<StoreApi<T>>) {
@@ -14,4 +16,6 @@ export function resetStores() {
   reset(useNoticeStore);
   reset(useBehaviorsStore);
   reset(useSettingsDialog);
+  reset(useSessionStore);
+  reset(useConfirmStore);
 }
