@@ -1,7 +1,9 @@
-# To Do List
-- Add intervals to collate data for different buckets
-- Allow resizing video
-- Configurable derived fields (occurences, avg. duration, total duration, etc.)
-- Configurable minimum event duration (default is 0.1 second)
+# To do
 
-# Please reach out if you have suggestions or constructive criticism!
+Ideas not yet built. Suggestions are welcome as GitHub issues.
+
+- Summaries per time bin (for example, counts per minute) in the export.
+- A minimum episode length filter for exports.
+- A reaction-time offset that shifts recorded starts earlier.
+- A frame step that matches the video's real frame rate instead of 1/30 s.
+- Store sessions in IndexedDB if very long sessions outgrow localStorage.

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Sync AGENTS.md copies before commit.
+# If AGENTS.md is staged, copy it to CLAUDE.md, GEMINI.md and
+# .github/copilot-instructions.md, then stage those copies so they land in
+# the same commit. AGENTS.md is the only file to edit by hand.
+
+if git diff --cached --name-only | grep -q '^AGENTS\.md$'; then
+    mkdir -p .github
+    cp AGENTS.md CLAUDE.md
+    cp AGENTS.md GEMINI.md
+    cp AGENTS.md .github/copilot-instructions.md
+    git add CLAUDE.md GEMINI.md .github/copilot-instructions.md
+fi
