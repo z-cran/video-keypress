@@ -12,14 +12,15 @@ import BehaviorSettingsDialog from "./features/behaviors/BehaviorSettingsDialog.
 import { confirmBehaviorRemoval } from "./features/behaviors/confirmBehaviorRemoval.ts";
 import { useSettingsDialog } from "./features/behaviors/settingsDialogStore.ts";
 import PlayerControls from "./features/player/PlayerControls.tsx";
+import { usePlayerStore } from "./features/player/playerStore.ts";
 import VideoDropZone from "./features/player/VideoDropZone.tsx";
 import VideoFileButton from "./features/player/VideoFileButton.tsx";
 import VideoPlayer from "./features/player/VideoPlayer.tsx";
-import { usePlayerStore } from "./features/player/playerStore.ts";
+import { useSessionStore } from "./features/recording/sessionStore.ts";
 import TallyTable from "./features/recording/TallyTable.tsx";
 import TriggerPad from "./features/recording/TriggerPad.tsx";
 import { useGlobalKeys } from "./features/recording/useGlobalKeys.ts";
-import { openVideo } from "./features/session/openVideo.ts";
+import { openFiles } from "./features/session/openVideo.ts";
 import { useAutosave } from "./features/session/useAutosave.ts";
 import EpisodeList from "./features/timeline/EpisodeList.tsx";
 import Timeline from "./features/timeline/Timeline.tsx";
@@ -45,27 +46,52 @@ function useWindowFileDrop(onFiles: (files: File[]) => void) {
   }, [onFiles]);
 }
 
-function Workspace() {
+function PlayerColumn() {
+  const hasVideo = usePlayerStore((s) => s.source !== null);
   const error = usePlayerStore((s) => s.error);
+  const scoresFor = useSessionStore((s) => s.session?.video.fileName);
 
+  if (!hasVideo) {
+    return (
+      <Alert
+        severity="info"
+        action={
+          <VideoFileButton onFiles={openFiles} color="inherit" size="small">
+            Open video
+          </VideoFileButton>
+        }
+      >
+        Viewing imported scores{scoresFor ? ` for ${scoresFor}` : ""}. Open the
+        video to keep scoring and to jump to episodes.
+      </Alert>
+    );
+  }
+  return (
+    <>
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          action={
+            <VideoFileButton onFiles={openFiles} color="inherit" size="small">
+              Choose another
+            </VideoFileButton>
+          }
+        >
+          {error}
+        </Alert>
+      )}
+      <VideoPlayer />
+      <PlayerControls />
+    </>
+  );
+}
+
+function Workspace() {
   return (
     <Grid container spacing={3}>
       <Grid size={{ xs: 12, md: 8 }}>
-        {error && (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-            action={
-              <VideoFileButton onFiles={openVideo} color="inherit" size="small">
-                Choose another
-              </VideoFileButton>
-            }
-          >
-            {error}
-          </Alert>
-        )}
-        <VideoPlayer />
-        <PlayerControls />
+        <PlayerColumn />
       </Grid>
       <Grid size={{ xs: 12, md: 4 }}>
         <Stack spacing={2}>
@@ -86,8 +112,8 @@ function Workspace() {
 export default function App() {
   useGlobalKeys();
   useAutosave();
-  useWindowFileDrop(openVideo);
-  const hasVideo = usePlayerStore((s) => s.source !== null);
+  useWindowFileDrop(openFiles);
+  const hasWork = useSessionStore((s) => s.session !== null);
   const settingsOpen = useSettingsDialog((s) => s.open);
   const setSettingsOpen = useSettingsDialog((s) => s.setOpen);
 
@@ -95,7 +121,18 @@ export default function App() {
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <AppHeader />
       <Container component="main" maxWidth="xl" sx={{ flex: 1, py: 3 }}>
-        {hasVideo ? <Workspace /> : <VideoDropZone onFiles={openVideo} />}
+        {hasWork ? (
+          <Workspace />
+        ) : (
+          <VideoDropZone onFiles={openFiles}>
+            <VideoFileButton
+              onFiles={openFiles}
+              accept=".json,application/json"
+            >
+              Or open saved scores (JSON)
+            </VideoFileButton>
+          </VideoDropZone>
+        )}
       </Container>
       <AppFooter />
       <Notices />

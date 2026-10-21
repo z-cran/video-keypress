@@ -13,7 +13,7 @@ export default function ConfirmDialog() {
   return (
     <Dialog
       open={request !== null}
-      onClose={() => answer(false)}
+      onClose={() => answer("cancel")}
       aria-labelledby="confirm-title"
       aria-describedby="confirm-message"
       maxWidth="xs"
@@ -22,18 +22,26 @@ export default function ConfirmDialog() {
         <>
           <DialogTitle id="confirm-title">{request.title}</DialogTitle>
           <DialogContent>
-            <DialogContentText id="confirm-message">
+            <DialogContentText
+              id="confirm-message"
+              sx={{ whiteSpace: "pre-line" }}
+            >
               {request.message}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => answer(false)}>
+            <Button onClick={() => answer("cancel")}>
               {request.cancelLabel ?? "Cancel"}
             </Button>
+            {request.alternativeLabel && (
+              <Button variant="outlined" onClick={() => answer("alternative")}>
+                {request.alternativeLabel}
+              </Button>
+            )}
             <Button
               variant="contained"
               color={request.destructive ? "error" : "primary"}
-              onClick={() => answer(true)}
+              onClick={() => answer("confirm")}
             >
               {request.confirmLabel}
             </Button>
