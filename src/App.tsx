@@ -20,7 +20,7 @@ import TallyTable from "./features/recording/TallyTable.tsx";
 import TriggerPad from "./features/recording/TriggerPad.tsx";
 import { useGlobalKeys } from "./features/recording/useGlobalKeys.ts";
 import { openVideo } from "./features/session/openVideo.ts";
-import { useSessionDuration } from "./features/session/useSessionDuration.ts";
+import { useAutosave } from "./features/session/useAutosave.ts";
 import EpisodeList from "./features/timeline/EpisodeList.tsx";
 import Timeline from "./features/timeline/Timeline.tsx";
 
@@ -85,7 +85,7 @@ function Workspace() {
 
 export default function App() {
   useGlobalKeys();
-  useSessionDuration();
+  useAutosave();
   useWindowFileDrop(openVideo);
   const hasVideo = usePlayerStore((s) => s.source !== null);
   const settingsOpen = useSettingsDialog((s) => s.open);

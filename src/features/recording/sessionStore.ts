@@ -19,9 +19,17 @@ interface SessionState {
   session: Session | null;
   active: Active;
   selectedId: string | null;
+  /**
+   * Off for a newly opened video until any saved session has been offered
+   * for restore; otherwise the empty new session would overwrite it.
+   */
+  autosave: boolean;
 
   /** Replace the current session. Active episodes are dropped. */
-  start: (session: Session) => void;
+  start: (session: Session, options?: { autosave?: boolean }) => void;
+  /** Swap in a changed session (e.g. after a restore or import). */
+  setSession: (session: Session) => void;
+  enableAutosave: () => void;
   clear: () => void;
   setDuration: (duration: number) => void;
 
@@ -59,9 +67,19 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
   session: null,
   active: {},
   selectedId: null,
+  autosave: false,
 
-  start: (session) => set({ session, active: {}, selectedId: null }),
-  clear: () => set({ session: null, active: {}, selectedId: null }),
+  start: (session, options) =>
+    set({
+      session,
+      active: {},
+      selectedId: null,
+      autosave: options?.autosave ?? false
+    }),
+  setSession: (session) => set({ session }),
+  enableAutosave: () => set({ autosave: true }),
+  clear: () =>
+    set({ session: null, active: {}, selectedId: null, autosave: false }),
 
   setDuration: (duration) => {
     const { session } = get();
