@@ -1,12 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import App from "../../App.tsx";
+import Root from "../../Root.tsx";
 import { useBehaviorsStore } from "./behaviorsStore.ts";
 
 async function openSettings() {
   const user = userEvent.setup();
-  render(<App />);
+  render(<Root />);
   await user.click(screen.getByRole("button", { name: "Behaviors" }));
   const dialog = screen.getByRole("dialog", { name: "Behaviors" });
   return { user, dialog };

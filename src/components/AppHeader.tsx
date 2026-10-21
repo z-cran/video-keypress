@@ -1,3 +1,4 @@
+import KeyboardOutlinedIcon from "@mui/icons-material/KeyboardOutlined";
 import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
 import TuneIcon from "@mui/icons-material/Tune";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -7,17 +8,22 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import { useState } from "react";
 import { useSettingsDialog } from "../features/behaviors/settingsDialogStore.ts";
 import VideoFileButton from "../features/player/VideoFileButton.tsx";
 import { usePlayerStore } from "../features/player/playerStore.ts";
 import { useSessionStore } from "../features/recording/sessionStore.ts";
 import ExportMenu from "../features/session/ExportMenu.tsx";
 import { openFiles } from "../features/session/openVideo.ts";
+import ColorModeButton from "./ColorModeButton.tsx";
+import ControlButton from "./ControlButton.tsx";
+import ShortcutsDialog from "./ShortcutsDialog.tsx";
 
 export default function AppHeader() {
   const videoName = usePlayerStore((s) => s.source?.file.name);
   const scoresName = useSessionStore((s) => s.session?.video.fileName);
   const openSettings = useSettingsDialog((s) => s.setOpen);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const chip =
     videoName ??
     (scoresName !== undefined
@@ -74,7 +80,18 @@ export default function AppHeader() {
             Open video
           </VideoFileButton>
         )}
+        <ControlButton
+          label="Keyboard shortcuts"
+          size="small"
+          onClick={() => setShortcutsOpen(true)}
+        >
+          <KeyboardOutlinedIcon fontSize="small" />
+        </ControlButton>
+        <ColorModeButton />
       </Toolbar>
+      {shortcutsOpen && (
+        <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />
+      )}
     </AppBar>
   );
 }

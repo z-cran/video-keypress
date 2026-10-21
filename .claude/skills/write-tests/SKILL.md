@@ -36,9 +36,13 @@ jsdom cannot play media. `src/test/setup.ts` patches `HTMLMediaElement.prototype
 - `loadMetadata(video, { duration })` fires `loadedmetadata`, `durationchange` and `canplay`.
 - `setTime(video, t)` sets `currentTime` and fires `timeupdate`.
 - `failToLoad(video, code)` sets `error` and fires `error`.
-- `renderAppWithVideo({ duration })` renders `<App />`, uploads a fake file and loads its metadata. It returns `{ user, video }`.
 
-Recording reads `video.currentTime` at the event, so a test sets the time between key events. No timers needed:
+Helpers in `src/test/renderApp.tsx`:
+
+- `renderAppWithVideo({ duration, name, size, lastModified })` renders `<Root />` (the app with its theme), uploads a fake file through "Choose a video" and loads its metadata. It returns `{ user, video, file }`.
+- `videoFile({ name, size, lastModified })` builds a `File` for `user.upload`.
+
+Recording reads `video.currentTime` at the event, so a test sets the time between key events. No timers needed. The default behaviors are Scratching (1), Grooming (2) and Rearing (3):
 
 ```tsx
 const { user, video } = await renderAppWithVideo({ duration: 60 });
@@ -47,15 +51,24 @@ setTime(video, 2);
 await user.keyboard("[Digit1>]");
 setTime(video, 3.5);
 await user.keyboard("[/Digit1]");
-expect(screen.getByTestId("tally-count-Behavior 1")).toHaveTextContent("1");
+const row = screen.getByTestId("tally-Scratching");
+expect(within(row).getAllByRole("cell")[1]).toHaveTextContent("1");
 ```
+
+Lessons from this codebase:
+
+- **Name physical keys.** `user.keyboard(".")` does not produce `code: "Period"`; write `[Period]`, `[Space]`, `[Digit1>]` (hold) and `[/Digit1]` (release).
+- **A dialog behind a closing dialog** stays hidden from queries during the exit transition. Use `await screen.findByRole("dialog", ...)` for it.
+- **Simulate a reload** for autosave tests with `cleanup()`, `resetStores()` from `src/test/resetStores.ts` (keep `localStorage`), then `await useBehaviorsStore.persist.rehydrate()`. See `src/features/session/autosave.test.tsx`.
+- **Capture downloads** by spying on `URL.createObjectURL` (keep the `Blob`) and `HTMLAnchorElement.prototype.click` (read `this.download`). See `importExport.test.tsx`. `Blob.text()` strips a leading BOM; decode with `new TextDecoder("utf-8", { ignoreBOM: true })` to check it.
+- **Prove the test can fail.** For a guard such as "Space on a focused button toggles once", break the guard locally and watch the test fail before trusting it.
 
 Rules:
 
 1. **No `waitFor` around synchronous asserts.** `user.*` calls finish their state updates before they resolve. Use one `await screen.findBy...` for things that appear later.
 2. **No sleeps.** Never `await new Promise((r) => setTimeout(r, n))`. If code under test uses timers, use `vi.useFakeTimers()` in that test and `vi.advanceTimersByTime(ms)`.
 3. **Query by role and name** (`getByRole("button", { name: "Play" })`). Use `data-testid` only for values with no accessible name, such as tally numbers.
-4. **Stores reset between tests.** `setup.ts` clears `localStorage` and resets every Zustand store, so a test never sees another test's episodes.
+4. **Stores reset between tests.** `setup.ts` clears `localStorage` and calls `resetStores()`, so a test never sees another test's episodes. Add any new store to `src/test/resetStores.ts`.
 5. **An act warning is a bug** in the test: an update you did not wait for. Await the end state.
 6. **Assert the post-condition.** After a recording, check what the user sees (tally, list) and what was saved (`localStorage`), not that a function ran.
 

@@ -99,3 +99,9 @@ Newest decisions at the bottom. When a decision is reversed, add a new ADR and m
 **Decision:** One workflow runs checks on every push and PR and deploys `dist/` to Pages on push to `main`. Node 22 (`.nvmrc`) with jsdom 29.
 
 **Rationale:** v1 deployed by hand with `gh-pages` from a laptop. jsdom 30 needs Node 22.22.2 or 24; upgrade both together later.
+
+## ADR-016: Autosave waits for the restore decision
+
+**Decision:** A session started by opening a video has `autosave: false`. Once the video's duration is known, `offerRestore` offers any saved session for that fingerprint, then turns autosave on. Sessions with no episodes remove their saved entry instead of saving.
+
+**Rationale:** The new session is empty. Saving it right away would delete the saved one before the researcher was asked. Removing empty sessions keeps a "continue?" prompt from appearing for a video with nothing in it.

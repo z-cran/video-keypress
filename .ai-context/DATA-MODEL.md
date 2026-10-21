@@ -112,13 +112,17 @@ Fingerprint: `${name}|${size}|${lastModified}`. A saved session is offered for r
 - `events` are sorted by `start`. `id` is the 0-based index in that order. `order` is the behavior's 1-based lane.
 - `key` is the hotkey label, or `""` when the behavior has no hotkey.
 - `scoringDate` is when scoring started (session `createdAt`).
+- `duration` is `null` when the browser never reported one.
 
 ## JSON import
 
 - **v2:** has `"version": 2`. Behaviors come from `behaviors`; events reference them by `behaviorId`.
 - **v1:** no `version`. Shape: `{ metadata: { fileName, scoringDate, scoringDateText, duration }, events: [{ id, key, behavior, order, start, end }] }`. Behaviors are built from unique `behavior` names, ordered by `order`, with the hotkey from `key` (`"1"` becomes `Digit1`, `"a"` becomes `KeyA`).
-- Behaviors in the file are matched to existing behaviors by name, ignoring case. Unmatched ones are added.
-- Rejected with a message: unreadable JSON, files over 10 MB, a wrong shape, non-finite or negative times. Swapped `start`/`end` are put in order.
+- Behaviors in the file are matched to existing behaviors by id, then by name ignoring case (`mergeBehaviors`). Unmatched ones are added, keeping their hotkey only if it is free.
+- The whole file is rejected with a message for unreadable JSON, files over 10 MB, or a shape without an `events` array.
+- Single events with non-finite or negative times, or an unknown behavior, are skipped and counted in the import notice. Swapped `start`/`end` are put in order.
+- With no video open, the import becomes a read-only session (`fingerprint: null`, never autosaved). Opening a video next offers to attach it; attaching skips the restore offer and overwrites any autosave for that video.
+- With a video open: if it has episodes, the researcher picks Add or Replace; if the file names differ, they confirm first.
 - **v1 caveat:** v1's timeline code changed stored times in place, so v1 files can contain times shifted by about 0.01 s and events stretched to 0.01 s. Those values are imported as they are.
 
 ## CSV exports

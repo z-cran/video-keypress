@@ -1,7 +1,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import App from "../../App.tsx";
+import Root from "../../Root.tsx";
 import { setTime } from "../../test/fakeMedia.ts";
 import { renderAppWithVideo, videoFile } from "../../test/renderApp.tsx";
 import { resetStores } from "../../test/resetStores.ts";
@@ -148,7 +148,7 @@ describe("export", () => {
 describe("import", () => {
   it("shows a v1 file read-only when no video is open", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<Root />);
 
     await user.upload(
       screen.getByLabelText("Or open saved scores (JSON)"),
@@ -179,7 +179,7 @@ describe("import", () => {
     resetStores();
 
     const fresh = userEvent.setup();
-    render(<App />);
+    render(<Root />);
     await fresh.upload(
       screen.getByLabelText("Import"),
       jsonFile(exported, "cage-07-scores.json")
@@ -209,7 +209,7 @@ describe("import", () => {
     "explains why a file that is %s cannot be imported",
     async (_label, content, message) => {
       const user = userEvent.setup();
-      render(<App />);
+      render(<Root />);
 
       await user.upload(screen.getByLabelText("Import"), jsonFile(content));
 
@@ -275,7 +275,7 @@ describe("import", () => {
 
   it("attaches imported scores to the next video opened, and saves them", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<Root />);
     await user.upload(
       screen.getByLabelText("Or open saved scores (JSON)"),
       jsonFile(V1_FILE)

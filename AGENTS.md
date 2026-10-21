@@ -69,6 +69,12 @@ npm run format         # prettier --write .
 - **Comments** explain why, and name the bug they prevent.
 - **Tests:** follow the 12 testing principles below.
 
+### Editing gotchas
+
+- **Imports vanish if added first.** Prettier runs `prettier-plugin-organize-imports` (and the Claude Code hook formats every edited file), which deletes unused imports. Add the code that uses an import in the same edit as the import, or before it.
+- **No invisible characters in source.** Build them from their code (`String.fromCharCode(0xfeff)`, see `BOM` in `sessionFormat.ts`) rather than writing an escape that a tool may turn into the literal character.
+- **Leaf MUI icons only exist under their v9 names.** `DeleteOutline` is gone; use `DeleteOutlined`. A missing icon fails at import time in tests.
+
 ## Testing Principles (Mandatory)
 
 1. **Behavioral, not structural:** assert what the user sees or what a function returns, not internal calls.

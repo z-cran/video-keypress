@@ -13,6 +13,11 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version)
   },
+  build: {
+    // One ~200 kB (gzip) chunk, mostly MUI. Splitting it gains nothing for a
+    // single-page tool that loads once.
+    chunkSizeWarningLimit: 800
+  },
   test: {
     environment: "jsdom",
     setupFiles: ["src/test/setup.ts"],

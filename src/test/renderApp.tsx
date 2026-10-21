@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import App from "../App.tsx";
+import Root from "../Root.tsx";
 import { loadMetadata } from "./fakeMedia.ts";
 
 interface Options {
@@ -24,7 +24,7 @@ export function videoFile({
 /** Render the app, pick a video through the file input and load its metadata. */
 export async function renderAppWithVideo(options: Options = {}) {
   const user = userEvent.setup();
-  render(<App />);
+  render(<Root />);
   const file = videoFile(options);
   await user.upload(screen.getByLabelText("Choose a video"), file);
   const video = screen.getByLabelText<HTMLVideoElement>("Video");

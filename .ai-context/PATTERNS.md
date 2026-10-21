@@ -59,3 +59,15 @@ State the situation and the next step: "This file did not load as a video. Try a
 `import Button from "@mui/material/Button"`, never `import { Button } from "@mui/material"`. ESLint enforces this.
 
 - Prevents: slow test start-up from loading the whole library.
+
+## Ask and tell through the shared stores
+
+Use `confirmAction(...)` (yes or no) or `chooseAction(...)` (confirm, alternative or cancel) from `lib/confirmStore.ts` for questions, and `notify(...)` from `lib/noticeStore.ts` for snackbars, including an Undo action. One `ConfirmDialog` and one `Notices` component render them. Never use `window.confirm` or `alert`.
+
+- Prevents: dialogs that block the event loop and break tests, and several snackbars fighting for the same spot.
+
+## New work starts with autosave off
+
+`sessionStore.start(session)` leaves `autosave` false; `offerRestore` turns it on after offering any saved session (ADR-016). Code that starts a session the researcher already chose to keep (attaching imported scores) passes `{ autosave: true }`.
+
+- Prevents: an empty new session overwriting the saved one before the researcher is asked.
