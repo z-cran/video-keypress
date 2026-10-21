@@ -30,6 +30,8 @@ interface SessionState {
   /** Swap in a changed session (e.g. after a restore or import). */
   setSession: (session: Session) => void;
   enableAutosave: () => void;
+  /** Drop every episode, recorded or in progress; the video stays open. */
+  clearEpisodes: () => void;
   clear: () => void;
   setDuration: (duration: number) => void;
 
@@ -78,6 +80,15 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
     }),
   setSession: (session) => set({ session }),
   enableAutosave: () => set({ autosave: true }),
+  clearEpisodes: () => {
+    const { session } = get();
+    if (!session) return;
+    set({
+      session: withEpisodes(session, []),
+      active: {},
+      selectedId: null
+    });
+  },
   clear: () =>
     set({ session: null, active: {}, selectedId: null, autosave: false }),
 

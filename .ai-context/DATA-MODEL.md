@@ -68,6 +68,11 @@ Behavior order is the array order in the behaviors store. Timeline lanes and the
 
 Fingerprint: `${name}|${size}|${lastModified}`. A saved session is offered for restore only when its duration is within 0.5 s of the loaded video's.
 
+**Reset** (`resetData.ts`, from the footer, after a confirmation):
+
+- **Clear saved sessions** removes every `video-keypress:session:*` key. It also empties the open session (a read-only import is closed), because autosave would otherwise write it straight back.
+- **Reset everything** does that, then restores the default behaviors, speed 1x, sound on and all CSV columns. It also removes the legacy `keybinds` key, and the footer sets MUI's theme mode back to system.
+
 ## JSON export (v2)
 
 ```json

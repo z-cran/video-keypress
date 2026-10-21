@@ -18,6 +18,8 @@ Everything runs in your browser. Videos and scores are never uploaded.
 
 Your work is saved in the browser as you go. Reopen the same video file and the app offers to continue where you left off. Browser storage can be cleared, so export when you finish.
 
+To start fresh, use **Reset saved data** at the bottom of the page. After a confirmation, it either clears the saved sessions (keeping your behaviors and settings) or resets everything to the defaults.
+
 ### Keyboard shortcuts
 
 | Keys                  | Action                                              |
