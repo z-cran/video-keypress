@@ -113,35 +113,138 @@ describe("export", () => {
     );
   });
 
+  it("saves the timeline as an SVG image", async () => {
+    const { user } = await scoredVideo();
+    const downloads = captureDownloads();
+
+    await exportAs(user, "Timeline \\(SVG\\)");
+
+    expect(downloads.names).toEqual(["cage-07-timeline.svg"]);
+    expect(await downloads.blobs[0]!.text()).toMatch(
+      /^<svg xmlns="http:\/\/www.w3.org\/2000\/svg"/
+    );
+  });
+});
+
+/** Blob.text() drops a leading BOM, so decode the bytes without stripping it. */
+async function rawText(blob: Blob) {
+  const bytes = await blob.arrayBuffer();
+  return new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes);
+}
+
+describe("CSV export columns", () => {
   it.each([
     [
       "Episodes \\(CSV\\)",
+      "Export episodes (CSV)",
       "cage-07-episodes.csv",
       BOM +
         "episode,behavior,key,start_s,end_s,duration_s\r\n1,Scratching,1,2.000,3.000,1.000"
     ],
     [
       "Summary \\(CSV\\)",
+      "Export summary (CSV)",
       "cage-07-summary.csv",
       BOM +
         "behavior,key,count,total_s,mean_s,percent_of_video\r\nScratching,1,1,1.000"
-    ],
-    [
-      "Timeline \\(SVG\\)",
-      "cage-07-timeline.svg",
-      '<svg xmlns="http://www.w3.org/2000/svg"'
     ]
-  ])("saves %s as %s", async (label, fileName, start) => {
+  ])(
+    "asks which columns to include for %s and starts with all of them",
+    async (menuItem, title, fileName, start) => {
+      const { user } = await scoredVideo();
+      const downloads = captureDownloads();
+
+      await exportAs(user, menuItem);
+      const dialog = screen.getByRole("dialog", { name: title });
+      expect(downloads.names).toEqual([]);
+      await user.click(within(dialog).getByRole("button", { name: "Export" }));
+
+      expect(downloads.names).toEqual([fileName]);
+      expect((await rawText(downloads.blobs[0]!)).startsWith(start)).toBe(true);
+    }
+  );
+
+  it("leaves out unchecked columns and keeps the rest in file order", async () => {
     const { user } = await scoredVideo();
     const downloads = captureDownloads();
+    await exportAs(user, "Episodes \\(CSV\\)");
+    const dialog = screen.getByRole("dialog", {
+      name: "Export episodes (CSV)"
+    });
 
-    await exportAs(user, label);
+    await user.click(within(dialog).getByRole("checkbox", { name: /^Hotkey/ }));
+    await user.click(within(dialog).getByRole("checkbox", { name: /^End/ }));
 
-    expect(downloads.names).toEqual([fileName]);
-    // Blob.text() drops a leading BOM, so decode the bytes without stripping it.
-    const bytes = await downloads.blobs[0]!.arrayBuffer();
-    const text = new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes);
-    expect(text.startsWith(start)).toBe(true);
+    expect(within(dialog).getByTestId("csv-preview")).toHaveTextContent(
+      "episode,behavior,start_s,duration_s 1,Scratching,2.000,1.000"
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Export" }));
+    expect(await rawText(downloads.blobs[0]!)).toBe(
+      BOM +
+        "episode,behavior,start_s,duration_s\r\n" +
+        "1,Scratching,2.000,1.000\r\n" +
+        "2,Grooming,10.000,2.500\r\n"
+    );
+  });
+
+  it("remembers the chosen columns the next time", async () => {
+    const { user } = await scoredVideo();
+    captureDownloads();
+    await exportAs(user, "Summary \\(CSV\\)");
+    let dialog = screen.getByRole("dialog", { name: "Export summary (CSV)" });
+    await user.click(within(dialog).getByRole("button", { name: "Clear" }));
+    await user.click(within(dialog).getByRole("checkbox", { name: /^Count/ }));
+    await user.click(
+      within(dialog).getByRole("checkbox", { name: /^Behavior/ })
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Export" }));
+
+    await exportAs(user, "Summary \\(CSV\\)");
+    dialog = await screen.findByRole("dialog", {
+      name: "Export summary (CSV)"
+    });
+
+    expect(
+      within(dialog)
+        .getAllByRole<HTMLInputElement>("checkbox")
+        .filter((c) => c.checked)
+        .map((c) => c.closest("label")?.textContent)
+    ).toEqual(["Behavior behavior", "Count count"]);
+    expect(
+      JSON.parse(localStorage.getItem("video-keypress:export")!)
+    ).toMatchObject({ state: { summaryColumns: ["behavior", "count"] } });
+  });
+
+  it("needs at least one column before exporting", async () => {
+    const { user } = await scoredVideo();
+    await exportAs(user, "Episodes \\(CSV\\)");
+    const dialog = screen.getByRole("dialog", {
+      name: "Export episodes (CSV)"
+    });
+
+    await user.click(within(dialog).getByRole("button", { name: "Clear" }));
+
+    expect(within(dialog).getByRole("alert")).toHaveTextContent(
+      "Choose at least one column."
+    );
+    expect(
+      within(dialog).getByRole("button", { name: "Export" })
+    ).toBeDisabled();
+  });
+
+  it("downloads nothing and keeps the old choice when cancelled", async () => {
+    const { user } = await scoredVideo();
+    const downloads = captureDownloads();
+    await exportAs(user, "Episodes \\(CSV\\)");
+    const dialog = screen.getByRole("dialog", {
+      name: "Export episodes (CSV)"
+    });
+
+    await user.click(within(dialog).getByRole("checkbox", { name: /^Hotkey/ }));
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+    expect(downloads.names).toEqual([]);
+    expect(localStorage.getItem("video-keypress:export")).toBeNull();
   });
 });
 

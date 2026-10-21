@@ -48,7 +48,8 @@ if (hasDom) {
 afterEach(async () => {
   if (!hasDom) return;
   cleanup();
-  localStorage.clear();
   const { resetStores } = await import("./resetStores.ts");
   resetStores();
+  // After the reset: persisted stores write their defaults when reset.
+  localStorage.clear();
 });

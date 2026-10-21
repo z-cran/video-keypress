@@ -84,6 +84,8 @@ UTF-8 with a byte order mark (Excel shows names correctly), CRLF line endings.
 - **Episodes:** `episode,behavior,key,start_s,end_s,duration_s`
 - **Summary:** `behavior,key,count,total_s,mean_s,percent_of_video`
 
+Before downloading either CSV, choose which of these columns to include. A preview shows the first rows, and your choice is remembered for next time.
+
 Overlapping episodes of the same behavior (possible after seeking back while recording) count separately in the totals and are flagged in the episode list.
 
 ## Development

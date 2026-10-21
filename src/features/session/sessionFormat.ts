@@ -239,36 +239,82 @@ export function csvCell(value: string | number | null): string {
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-function csv(rows: (string | number | null)[][]): string {
+type Cell = string | number | null;
+
+function csv(rows: readonly (readonly Cell[])[]): string {
   // The BOM makes Excel read UTF-8 names correctly.
   return BOM + rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
+/** CSV columns in file order. `id` is the header written to the file. */
+export const EPISODE_COLUMNS = [
+  { id: "episode", label: "Episode number" },
+  { id: "behavior", label: "Behavior" },
+  { id: "key", label: "Hotkey" },
+  { id: "start_s", label: "Start (s)" },
+  { id: "end_s", label: "End (s)" },
+  { id: "duration_s", label: "Duration (s)" }
+] as const;
+export type EpisodeColumn = (typeof EPISODE_COLUMNS)[number]["id"];
+
+export const SUMMARY_COLUMNS = [
+  { id: "behavior", label: "Behavior" },
+  { id: "key", label: "Hotkey" },
+  { id: "count", label: "Count" },
+  { id: "total_s", label: "Total (s)" },
+  { id: "mean_s", label: "Mean (s)" },
+  { id: "percent_of_video", label: "% of video" }
+] as const;
+export type SummaryColumn = (typeof SUMMARY_COLUMNS)[number]["id"];
+
+/**
+ * The known ids in `selected`, in file order. Unknown ids are dropped, and
+ * an empty or unreadable selection means every column, so a stale or
+ * corrupt saved choice never produces an empty file.
+ */
+export function pickColumns<T extends string>(
+  all: readonly { id: T }[],
+  selected: unknown
+): T[] {
+  const chosen = new Set<unknown>(Array.isArray(selected) ? selected : []);
+  const picked = all.map((c) => c.id).filter((id) => chosen.has(id));
+  return picked.length > 0 ? picked : all.map((c) => c.id);
+}
+
+function table<T extends string>(
+  columns: readonly T[],
+  rows: readonly Record<T, Cell>[]
+): string {
+  return csv([columns, ...rows.map((row) => columns.map((c) => row[c]))]);
+}
+
 export function toEpisodesCsv(
   session: Session,
-  behaviors: readonly Behavior[]
+  behaviors: readonly Behavior[],
+  columns: readonly EpisodeColumn[] = EPISODE_COLUMNS.map((c) => c.id)
 ): string {
   const byId = new Map(lanes(session, behaviors).map((b) => [b.id, b]));
   const sorted = [...session.episodes].sort((a, b) => a.start - b.start);
-  return csv([
-    ["episode", "behavior", "key", "start_s", "end_s", "duration_s"],
-    ...sorted.map((e, i) => {
+  return table(
+    pickColumns(EPISODE_COLUMNS, columns),
+    sorted.map((e, i) => {
       const b = byId.get(e.behaviorId);
-      return [
-        i + 1,
-        b?.name ?? "",
-        b?.hotkey?.label ?? "",
-        e.start.toFixed(3),
-        e.end.toFixed(3),
-        (e.end - e.start).toFixed(3)
-      ];
+      return {
+        episode: i + 1,
+        behavior: b?.name ?? "",
+        key: b?.hotkey?.label ?? "",
+        start_s: e.start.toFixed(3),
+        end_s: e.end.toFixed(3),
+        duration_s: (e.end - e.start).toFixed(3)
+      };
     })
-  ]);
+  );
 }
 
 export function toSummaryCsv(
   session: Session,
-  behaviors: readonly Behavior[]
+  behaviors: readonly Behavior[],
+  columns: readonly SummaryColumn[] = SUMMARY_COLUMNS.map((c) => c.id)
 ): string {
   const ordered = [
     ...behaviors,
@@ -283,20 +329,21 @@ export function toSummaryCsv(
     ordered.map((b) => b.id),
     session.video.duration
   );
-  return csv([
-    ["behavior", "key", "count", "total_s", "mean_s", "percent_of_video"],
-    ...ordered.map((b) => {
+  return table(
+    pickColumns(SUMMARY_COLUMNS, columns),
+    ordered.map((b) => {
       const t = tally.get(b.id);
-      return [
-        b.name,
-        b.hotkey?.label ?? "",
-        t?.count ?? 0,
-        (t?.total ?? 0).toFixed(3),
-        t?.mean == null ? "" : t.mean.toFixed(3),
-        t?.percentOfVideo == null ? "" : t.percentOfVideo.toFixed(2)
-      ];
+      return {
+        behavior: b.name,
+        key: b.hotkey?.label ?? "",
+        count: t?.count ?? 0,
+        total_s: (t?.total ?? 0).toFixed(3),
+        mean_s: t?.mean == null ? "" : t.mean.toFixed(3),
+        percent_of_video:
+          t?.percentOfVideo == null ? "" : t.percentOfVideo.toFixed(2)
+      };
     })
-  ]);
+  );
 }
 
 /** A safe base name for exported files: `mouse 3.mp4` gives `mouse 3`. */

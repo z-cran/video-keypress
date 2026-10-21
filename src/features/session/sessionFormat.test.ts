@@ -5,8 +5,11 @@ import type { Session } from "./session.ts";
 import {
   BOM,
   csvCell,
+  EPISODE_COLUMNS,
   exportBaseName,
   parseSessionFile,
+  pickColumns,
+  SUMMARY_COLUMNS,
   toEpisodesCsv,
   toJsonV2,
   toSummaryCsv
@@ -309,6 +312,46 @@ describe("CSV export", () => {
         "Grooming,,1,1.500,1.500,1.50\r\n" +
         "Rearing,,0,0.000,,0.00\r\n"
     );
+  });
+});
+
+describe("CSV column choice", () => {
+  it("writes only the chosen episode columns, in file order", () => {
+    const csv = toEpisodesCsv(
+      session(),
+      [scratching, grooming],
+      ["duration_s", "behavior"]
+    );
+    expect(csv).toBe(
+      BOM + "behavior,duration_s\r\nScratching,2.250\r\nGrooming,1.500\r\n"
+    );
+  });
+
+  it("writes only the chosen summary columns", () => {
+    const csv = toSummaryCsv(session(), [scratching, grooming], ["count"]);
+    expect(csv).toBe(BOM + "count\r\n1\r\n1\r\n");
+  });
+
+  it("drops unknown column ids and keeps file order", () => {
+    expect(
+      pickColumns(EPISODE_COLUMNS, ["end_s", "nope", "episode", 7])
+    ).toEqual(["episode", "end_s"]);
+  });
+
+  it.each([
+    ["an empty list", []],
+    ["only unknown ids", ["nope"]],
+    ["null", null],
+    ["a string", "episode"]
+  ])("falls back to every column for %s", (_label, selected) => {
+    expect(pickColumns(SUMMARY_COLUMNS, selected)).toEqual([
+      "behavior",
+      "key",
+      "count",
+      "total_s",
+      "mean_s",
+      "percent_of_video"
+    ]);
   });
 });
 

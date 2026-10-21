@@ -63,6 +63,7 @@ Behavior order is the array order in the behaviors store. Timeline lanes and the
 | `video-keypress:behaviors`             | Zustand persist envelope `{ state: { behaviors }, version }` | `behaviorsStore`                  |
 | `video-keypress:prefs`                 | `{ state: { rate, muted }, version }`                        | `playerStore`                     |
 | `video-keypress:session:<fingerprint>` | `Session` JSON                                               | `savedSessions` via `useAutosave` |
+| `video-keypress:export`                | `{ state: { episodeColumns, summaryColumns }, version }`     | `exportPrefsStore`                |
 | `keybinds` (legacy, read once)         | v1 `[{ id, key, order, behavior, active }]`                  | v1 only; migrated, never written  |
 
 Fingerprint: `${name}|${size}|${lastModified}`. A saved session is offered for restore only when its duration is within 0.5 s of the loaded video's.
@@ -132,6 +133,8 @@ Both start with a UTF-8 BOM, use CRLF line endings and RFC 4180 quoting. Text ce
 **Episodes** (`<video>-episodes.csv`): `episode,behavior,key,start_s,end_s,duration_s`
 
 **Summary** (`<video>-summary.csv`): `behavior,key,count,total_s,mean_s,percent_of_video`
+
+Those are the full column sets (`EPISODE_COLUMNS`, `SUMMARY_COLUMNS` in `sessionFormat.ts`). Before each CSV download, `CsvColumnsDialog` lets the researcher pick a subset, with a preview. The file always keeps the order above whatever order the columns were picked in. The last choice per CSV is saved under `video-keypress:export`; `pickColumns` drops unknown ids and falls back to all columns if nothing usable is left. To add a column, add it to the list and to the row object in `toEpisodesCsv` or `toSummaryCsv`; saved choices without it keep working.
 
 ## SVG export
 

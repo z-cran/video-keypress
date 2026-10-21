@@ -3,6 +3,7 @@ import { useBehaviorsStore } from "../features/behaviors/behaviorsStore.ts";
 import { useSettingsDialog } from "../features/behaviors/settingsDialogStore.ts";
 import { usePlayerStore } from "../features/player/playerStore.ts";
 import { useSessionStore } from "../features/recording/sessionStore.ts";
+import { useExportPrefs } from "../features/session/exportPrefsStore.ts";
 import { useConfirmStore } from "../lib/confirmStore.ts";
 import { useNoticeStore } from "../lib/noticeStore.ts";
 
@@ -18,4 +19,5 @@ export function resetStores() {
   reset(useSettingsDialog);
   reset(useSessionStore);
   reset(useConfirmStore);
+  reset(useExportPrefs);
 }
