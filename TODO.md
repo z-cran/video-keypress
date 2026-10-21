@@ -1,4 +1,5 @@
 # To Do List
+
 - Add intervals to collate data for different buckets
 - Allow resizing video
 - Configurable derived fields (occurences, avg. duration, total duration, etc.)
