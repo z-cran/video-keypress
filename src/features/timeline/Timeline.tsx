@@ -42,6 +42,7 @@ import {
 } from "./timelineScale.ts";
 
 const LABEL_WIDTH = 132;
+const LABEL_WIDTH_XS = 92;
 const NO_EPISODES: Episode[] = [];
 
 interface Drag {
@@ -257,9 +258,14 @@ export default function Timeline() {
         >
           Timeline
         </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ flex: 1, display: { xs: "none", sm: "block" } }}
+        >
           Click to jump to a moment. Click an episode to select it.
         </Typography>
+        <Box sx={{ flex: 1, display: { xs: "block", sm: "none" } }} />
         <ControlButton
           label="Zoom out"
           size="small"
@@ -296,7 +302,7 @@ export default function Timeline() {
         <Box
           sx={{
             position: "relative",
-            width: LABEL_WIDTH,
+            width: { xs: LABEL_WIDTH_XS, sm: LABEL_WIDTH },
             flexShrink: 0,
             height
           }}

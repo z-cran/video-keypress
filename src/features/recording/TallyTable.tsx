@@ -29,7 +29,12 @@ export default function TallyTable() {
         Tally
       </Typography>
       <Box sx={{ overflowX: "auto" }}>
-        <Table size="small" aria-labelledby="tally-title">
+        <Table
+          size="small"
+          aria-labelledby="tally-title"
+          // The column is narrow; keep "1.78 s" on one line and scroll instead.
+          sx={{ "& th, & td": { whiteSpace: "nowrap", px: 1 } }}
+        >
           <TableHead>
             <TableRow>
               <TableCell>Behavior</TableCell>
