@@ -6,7 +6,7 @@ React app to record events via keypresses while watching a video.
 
 ## Link to App
 
-GitHub Pages: https://zacran.github.io/video-keypress/
+GitHub Pages: https://z-cran.github.io/video-keypress/
 
 ## Supported Video File Types
 
