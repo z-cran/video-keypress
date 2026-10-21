@@ -21,6 +21,8 @@ import TriggerPad from "./features/recording/TriggerPad.tsx";
 import { useGlobalKeys } from "./features/recording/useGlobalKeys.ts";
 import { openVideo } from "./features/session/openVideo.ts";
 import { useSessionDuration } from "./features/session/useSessionDuration.ts";
+import EpisodeList from "./features/timeline/EpisodeList.tsx";
+import Timeline from "./features/timeline/Timeline.tsx";
 
 /**
  * Without this, a file dropped outside the drop zone makes the browser
@@ -69,6 +71,12 @@ function Workspace() {
         <Stack spacing={2}>
           <TriggerPad />
           <TallyTable />
+        </Stack>
+      </Grid>
+      <Grid size={12}>
+        <Stack spacing={2}>
+          <Timeline />
+          <EpisodeList />
         </Stack>
       </Grid>
     </Grid>
