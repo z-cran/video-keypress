@@ -35,6 +35,38 @@ export function formatRate(rate: number): string {
   return `${rate}x`;
 }
 
+/**
+ * Why the dropped or picked files cannot be opened as one video, or null.
+ * Files with an empty type are allowed through: browsers leave it blank for
+ * containers they do not recognize (e.g. .mkv), and the element decides.
+ */
+export function videoFileProblem(
+  files: readonly { name: string; type: string }[]
+): string | null {
+  if (files.length === 0) return "No file was selected.";
+  if (files.length > 1) return "Open one video at a time.";
+  const { type } = files[0]!;
+  if (type === "" || type.startsWith("video/")) return null;
+  if (type.startsWith("audio/")) return null;
+  return "That file does not look like a video. Choose an MP4 or WebM file.";
+}
+
+/** `MediaError.code` as a sentence with a next step. */
+export function mediaErrorMessage(code: number): string {
+  switch (code) {
+    case 1:
+      return "Loading stopped before the video was ready. Try choosing it again.";
+    case 2:
+      return "The video could not be read from disk. Try choosing it again.";
+    case 3:
+      return "This browser could not decode the video. Converting it to MP4 (H.264) usually helps.";
+    case 4:
+      return "This browser cannot play this file. Try an MP4 (H.264) or WebM video.";
+    default:
+      return "The video did not load. Try another file or another browser.";
+  }
+}
+
 /** Where a relative seek lands, kept inside the video. */
 export function seekTarget(
   current: number,
