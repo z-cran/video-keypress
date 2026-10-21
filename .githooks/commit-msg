@@ -1,0 +1,29 @@
+#!/bin/sh
+# Reject AI attribution in commit messages.
+#
+# AGENTS.md: "ZERO AI ATTRIBUTION: MANDATORY, NON-NEGOTIABLE". Commit
+# messages must read as if written entirely by a human developer. Tools that
+# append a Co-Authored-By trailer do so by default, so this hook is the
+# backstop rather than the reminder.
+
+msg_file="$1"
+
+# Drop the comment lines git discards anyway, so the scan only sees the
+# message a reviewer would actually read.
+offending=$(grep -v '^#' "$msg_file" | grep -niE \
+    -e '^[[:space:]]*co-authored-by:.*(claude|anthropic|copilot|gemini|cursor)' \
+    -e 'noreply@anthropic\.com' \
+    -e 'generated (with|by) \[?(claude|ai\b)' \
+    -e 'ai-(assisted|generated)')
+
+if [ -n "$offending" ]; then
+    echo "commit-msg: AI attribution is not allowed in commit messages." >&2
+    echo >&2
+    echo "$offending" | sed 's/^/  /' >&2
+    echo >&2
+    echo "See AGENTS.md - ZERO AI ATTRIBUTION, MANDATORY, NON-NEGOTIABLE." >&2
+    echo "Remove the line(s) above, then commit again." >&2
+    exit 1
+fi
+
+exit 0
