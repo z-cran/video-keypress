@@ -25,5 +25,6 @@ Deviations from the plan:
 - [x] WU9: Autosave and restore, quota eviction and full-storage warning.
 - [x] WU10: Import and export (JSON v1/v2, CSV, SVG), read-only view, attach to next video.
 - [x] WU11: Polish: shortcuts dialog, theme toggle, copy pass, README v2, TODO.md, wiki updates.
-- [ ] Manual check in Chrome, Firefox and Safari with a real video (Cmd during a hold, WebM with unknown duration, touch).
+- [x] Headless Chrome check with a generated H.264 video: load, play, hold 1, Space, Shift+., timeline click to seek, Behaviors dialog, dark mode, 390 px width. No console errors. Fixed tally wrapping and the phone timeline header.
+- [ ] Manual check in Firefox and Safari, and on a touch screen (Cmd during a hold, WebM with unknown duration, holding a trigger by touch).
 - [ ] Set GitHub Pages source to "GitHub Actions" before the first deploy from `main`.
