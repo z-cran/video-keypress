@@ -6,6 +6,8 @@ import { useEffect } from "react";
 import AppFooter from "./components/AppFooter.tsx";
 import AppHeader from "./components/AppHeader.tsx";
 import Notices from "./components/Notices.tsx";
+import BehaviorSettingsDialog from "./features/behaviors/BehaviorSettingsDialog.tsx";
+import { useSettingsDialog } from "./features/behaviors/settingsDialogStore.ts";
 import PlayerControls from "./features/player/PlayerControls.tsx";
 import VideoDropZone from "./features/player/VideoDropZone.tsx";
 import VideoFileButton from "./features/player/VideoFileButton.tsx";
@@ -66,6 +68,8 @@ export default function App() {
   useGlobalKeys();
   useWindowFileDrop(openVideo);
   const hasVideo = usePlayerStore((s) => s.source !== null);
+  const settingsOpen = useSettingsDialog((s) => s.open);
+  const setSettingsOpen = useSettingsDialog((s) => s.setOpen);
 
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -75,6 +79,9 @@ export default function App() {
       </Container>
       <AppFooter />
       <Notices />
+      {settingsOpen && (
+        <BehaviorSettingsDialog onClose={() => setSettingsOpen(false)} />
+      )}
     </Box>
   );
 }

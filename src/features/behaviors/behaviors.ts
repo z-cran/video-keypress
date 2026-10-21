@@ -182,6 +182,57 @@ export function mergeBehaviors(
 }
 
 /**
+ * Behaviors read back from storage or a file, with anything malformed
+ * dropped or repaired. Returns null when nothing usable is left.
+ */
+export function sanitizeBehaviors(
+  raw: unknown,
+  newId: NewId
+): Behavior[] | null {
+  if (!Array.isArray(raw)) return null;
+  const behaviors: Behavior[] = [];
+  for (const item of raw as unknown[]) {
+    if (typeof item !== "object" || item === null) continue;
+    const b = item as Record<string, unknown>;
+    const name =
+      typeof b.name === "string"
+        ? normalizeName(b.name).slice(0, MAX_NAME_LENGTH)
+        : "";
+    if (!name || behaviors.some((other) => sameName(other.name, name)))
+      continue;
+    const hotkey = b.hotkey as Partial<Hotkey> | null | undefined;
+    const code = typeof hotkey?.code === "string" ? hotkey.code : null;
+    const usable =
+      code !== null &&
+      isAllowedHotkeyCode(code) &&
+      !behaviors.some((other) => other.hotkey?.code === code);
+    const id =
+      typeof b.id === "string" && b.id && !behaviors.some((o) => o.id === b.id)
+        ? b.id
+        : newId();
+    behaviors.push({
+      id,
+      name,
+      color:
+        typeof b.color === "string" && /^#[0-9a-f]{6}$/i.test(b.color)
+          ? b.color
+          : nextColor(behaviors),
+      hotkey: usable
+        ? {
+            code,
+            label:
+              typeof hotkey?.label === "string" && hotkey.label
+                ? hotkey.label.slice(0, 8)
+                : hotkeyLabel(code, undefined)
+          }
+        : null,
+      mode: b.mode === "toggle" ? "toggle" : "hold"
+    });
+  }
+  return behaviors.length > 0 ? behaviors : null;
+}
+
+/**
  * v1 kept `[{ id, key, order, behavior, active }]` under localStorage
  * `keybinds`. Returns null when there is nothing usable, so the caller falls
  * back to the defaults.

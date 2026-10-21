@@ -1,15 +1,19 @@
 import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
+import TuneIcon from "@mui/icons-material/Tune";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import { useSettingsDialog } from "../features/behaviors/settingsDialogStore.ts";
 import VideoFileButton from "../features/player/VideoFileButton.tsx";
 import { usePlayerStore } from "../features/player/playerStore.ts";
 import { openVideo } from "../features/session/openVideo.ts";
 
 export default function AppHeader() {
   const fileName = usePlayerStore((s) => s.source?.file.name);
+  const openSettings = useSettingsDialog((s) => s.setOpen);
 
   return (
     <AppBar
@@ -18,7 +22,7 @@ export default function AppHeader() {
       elevation={0}
       sx={{ borderBottom: 1, borderColor: "divider" }}
     >
-      <Toolbar sx={{ gap: 1.5, flexWrap: "wrap" }}>
+      <Toolbar sx={{ gap: 1.5, flexWrap: "wrap", py: { xs: 1, sm: 0 } }}>
         <Typography
           variant="h6"
           component="h1"
@@ -35,6 +39,13 @@ export default function AppHeader() {
           />
         )}
         <Box sx={{ flex: 1 }} />
+        <Button
+          size="small"
+          startIcon={<TuneIcon />}
+          onClick={() => openSettings(true)}
+        >
+          Behaviors
+        </Button>
         {fileName && (
           <VideoFileButton onFiles={openVideo} variant="outlined" size="small">
             Open video

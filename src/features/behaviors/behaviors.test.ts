@@ -9,6 +9,7 @@ import {
   nameProblem,
   nextColor,
   PALETTE,
+  sanitizeBehaviors,
   updateBehavior,
   type Behavior
 } from "./behaviors.ts";
@@ -178,6 +179,78 @@ describe("mergeBehaviors", () => {
       counter()
     );
     expect(added[0]?.color).toBe(PALETTE[0]);
+  });
+});
+
+describe("sanitizeBehaviors", () => {
+  it("keeps well-formed behaviors as they are", () => {
+    const stored = [
+      behavior("b1", "Scratching", {
+        color: "#E69F00",
+        hotkey: { code: "KeyS", label: "S" },
+        mode: "toggle"
+      })
+    ];
+    expect(sanitizeBehaviors(stored, counter())).toEqual(stored);
+  });
+
+  it("repairs bad fields instead of dropping the behavior", () => {
+    const stored = [
+      {
+        id: 7,
+        name: "  Scratching ",
+        color: "teal",
+        hotkey: { code: "Space" },
+        mode: "sometimes"
+      }
+    ];
+    expect(sanitizeBehaviors(stored, counter("n"))).toEqual([
+      {
+        id: "n1",
+        name: "Scratching",
+        color: PALETTE[0],
+        hotkey: null,
+        mode: "hold"
+      }
+    ]);
+  });
+
+  it("drops a second behavior with the same name and frees a duplicate key", () => {
+    const stored = [
+      behavior("b1", "A", { hotkey: { code: "Digit1", label: "1" } }),
+      behavior("b2", "a"),
+      behavior("b3", "B", { hotkey: { code: "Digit1", label: "1" } })
+    ];
+    const result = sanitizeBehaviors(stored, counter());
+    expect(result?.map((b) => [b.id, b.hotkey?.code ?? null])).toEqual([
+      ["b1", "Digit1"],
+      ["b3", null]
+    ]);
+  });
+
+  it("fills in a missing hotkey label from the key code", () => {
+    const stored = [
+      {
+        id: "b1",
+        name: "A",
+        color: "#000000",
+        hotkey: { code: "Numpad2" },
+        mode: "hold"
+      }
+    ];
+    expect(sanitizeBehaviors(stored, counter())?.[0]?.hotkey).toEqual({
+      code: "Numpad2",
+      label: "Num 2"
+    });
+  });
+
+  it.each([
+    ["null", null],
+    ["an object", { behaviors: [] }],
+    ["an empty array", []],
+    ["only junk", [null, 1, "x", { name: "" }]]
+  ])("returns null for %s", (_label, raw) => {
+    expect(sanitizeBehaviors(raw, counter())).toBeNull();
   });
 });
 
