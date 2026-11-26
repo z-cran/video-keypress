@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { notify } from "../../lib/noticeStore.ts";
+import { skipUnchangedWrites } from "../../lib/skipUnchangedWrites.ts";
 import { FRAME_STEP, seekTarget, snapRate, stepRate } from "./playback.ts";
 
 export interface VideoSource {
@@ -168,7 +169,8 @@ export const usePlayerStore = create<PlayerState>()(
     {
       name: "video-keypress:prefs",
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      // persist writes on every set(), and currentTime changes ~10x a second.
+      storage: createJSONStorage(() => skipUnchangedWrites(localStorage)),
       partialize: (s) => ({ rate: s.rate, muted: s.muted }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as { rate?: unknown; muted?: unknown };

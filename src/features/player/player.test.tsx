@@ -1,5 +1,5 @@
 import { fireEvent, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { failToLoad, setTime } from "../../test/fakeMedia.ts";
 import { renderAppWithVideo } from "../../test/renderApp.tsx";
 
@@ -141,6 +141,37 @@ describe("playback speed", () => {
     expect(video.playbackRate).toBe(1.75);
     expect(JSON.parse(localStorage.getItem("video-keypress:prefs")!)).toEqual({
       state: { rate: 1.75, muted: false },
+      version: 1
+    });
+  });
+});
+
+describe("saved player prefs", () => {
+  const PREFS_KEY = "video-keypress:prefs";
+  const prefsWrites = (spy: { mock: { calls: unknown[][] } }) =>
+    spy.mock.calls.filter(([key]) => key === PREFS_KEY).length;
+
+  it("does not rewrite the unchanged prefs while the video plays", async () => {
+    const { user, video } = await renderAppWithVideo({ duration: 60 });
+    await user.click(screen.getByRole("button", { name: "Play" }));
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+
+    // Each timeupdate updates the player store, as playback does several
+    // times a second. On an iPad that was a localStorage write every time.
+    for (let t = 1; t <= 20; t++) setTime(video, t / 4);
+
+    expect(prefsWrites(setItem)).toBe(0);
+  });
+
+  it("still saves the prefs when the speed changes", async () => {
+    const { user } = await renderAppWithVideo();
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+
+    await user.click(screen.getByRole("button", { name: "Faster" }));
+
+    expect(prefsWrites(setItem)).toBe(1);
+    expect(JSON.parse(localStorage.getItem(PREFS_KEY)!)).toEqual({
+      state: { rate: 1.25, muted: false },
       version: 1
     });
   });

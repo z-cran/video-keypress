@@ -14,6 +14,12 @@ Logic that can be wrong in interesting ways (recording, stats, hotkeys, file for
 
 - Prevents: v1's late timestamps, React Compiler lint errors (`react-hooks/refs`, `purity`) and re-rendering every bar 60 times a second.
 
+## Persisted stores that update often write only on change
+
+zustand's `persist` writes to storage on every `set()`, even when the persisted fields did not change. A persisted store that also holds fast-moving state, as the player store holds `currentTime`, wraps its storage: `createJSONStorage(() => skipUnchangedWrites(localStorage))`. The wrapper compares the new value with what is stored, not with its own last write, so a reset or another tab cannot leave it stale.
+
+- Prevents: rewriting the unchanged speed and mute prefs to localStorage about 14 times a second during playback, measured on iPadOS WebKit.
+
 ## Store selectors return primitives or stable references
 
 ```ts

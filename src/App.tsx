@@ -11,6 +11,7 @@ import Notices from "./components/Notices.tsx";
 import BehaviorSettingsDialog from "./features/behaviors/BehaviorSettingsDialog.tsx";
 import { confirmBehaviorRemoval } from "./features/behaviors/confirmBehaviorRemoval.ts";
 import { useSettingsDialog } from "./features/behaviors/settingsDialogStore.ts";
+import { PlayerMediaDiagnostics } from "./features/player/MediaDiagnostics.tsx";
 import PlayerControls from "./features/player/PlayerControls.tsx";
 import { usePlayerStore } from "./features/player/playerStore.ts";
 import VideoDropZone from "./features/player/VideoDropZone.tsx";
@@ -83,6 +84,7 @@ function PlayerColumn() {
       )}
       <VideoPlayer />
       <PlayerControls />
+      <PlayerMediaDiagnostics />
     </>
   );
 }
