@@ -178,6 +178,8 @@ export interface ReportInput {
   /** iPad Safari reports a Mac user agent; touch points tell them apart. */
   touchPoints: number;
   file: FileInfo | null;
+  /** How the video is loaded: "service worker" or "blob URL" (ADR-017). */
+  source: string | null;
   snapshot: MediaSnapshot | null;
   events: readonly MediaEvent[];
 }
@@ -196,6 +198,7 @@ export function formatReport(input: ReportInput): string {
     file
       ? `File: ${file.name} · ${file.type || "no type"} · ${formatBytes(file.size)}`
       : "File: none chosen",
+    `Source: ${input.source ?? "none"}`,
     ...(snapshot
       ? describeMedia(snapshot).map(({ label, value }) => `${label}: ${value}`)
       : ["Video: no state reported yet"]),

@@ -14,6 +14,12 @@ Logic that can be wrong in interesting ways (recording, stats, hotkeys, file for
 
 - Prevents: v1's late timestamps, React Compiler lint errors (`react-hooks/refs`, `purity`) and re-rendering every bar 60 times a second.
 
+## Play local videos through the worker, never one huge range
+
+Load the picked file with `openVideoStream(file)` and keep the `release` it returns. Do not call `URL.createObjectURL` for a video. The service worker answers each `Range` request with at most `MAX_RANGE_BYTES`. When no worker controls the page, `openVideoStream` falls back to a blob URL by itself.
+
+- Prevents: large videos stalling on iPad 4 to 8 seconds in. WebKit asks for the whole rest of the file in one request, and a `blob:` URL tries to fill it (ADR-017).
+
 ## Persisted stores that update often write only on change
 
 zustand's `persist` writes to storage on every `set()`, even when the persisted fields did not change. A persisted store that also holds fast-moving state, as the player store holds `currentTime`, wraps its storage: `createJSONStorage(() => skipUnchangedWrites(localStorage))`. The wrapper compares the new value with what is stored, not with its own last write, so a reset or another tab cannot leave it stale.

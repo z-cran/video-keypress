@@ -4,7 +4,7 @@ Score animal behavior in a video from your computer. Load a video (for example, 
 
 **Open the app:** https://z-cran.github.io/video-keypress/
 
-Everything runs in your browser. Videos and scores are never uploaded.
+Everything runs in your browser. Videos and scores are never uploaded. Long, multi-gigabyte recordings (for example GoPro chapters) play too, including on iPad: a small service worker in your browser hands the video to the player in pieces.
 
 ## Using it
 

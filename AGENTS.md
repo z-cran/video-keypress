@@ -15,7 +15,7 @@ This file guides AI agents (Claude Code, GitHub Copilot, Cursor, Gemini CLI, etc
 
 - **Runtime:** Node 22 (`.nvmrc`), npm.
 - **App:** React 19, Vite 8, TypeScript 6 (`erasableSyntaxOnly`: no enums or namespaces), MUI 9 with Emotion, Zustand 5 for state.
-- **Video:** native `<video>` with custom MUI controls. No player library.
+- **Video:** native `<video>` with custom MUI controls. No player library. Picked files play through a service worker that serves them in capped byte ranges (`video-sw.js`, ADR-017); without one, a `blob:` URL.
 - **Timeline:** custom SVG. No chart library.
 - **Testing:** Vitest 5, Testing Library (react, user-event, jest-dom), jsdom.
 - **Linting:** ESLint 10 flat config (typescript-eslint type-checked, react-hooks 7 with the React Compiler rules, react-refresh), Prettier with `prettier-plugin-organize-imports`.
