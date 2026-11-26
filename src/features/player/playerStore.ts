@@ -3,10 +3,10 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { notify } from "../../lib/noticeStore.ts";
 import { skipUnchangedWrites } from "../../lib/skipUnchangedWrites.ts";
 import { FRAME_STEP, seekTarget, snapRate, stepRate } from "./playback.ts";
+import { openVideoStream, type VideoStream } from "./videoStreamClient.ts";
 
-export interface VideoSource {
+export interface VideoSource extends VideoStream {
   file: File;
-  url: string;
 }
 
 interface PlayerState {
@@ -74,18 +74,16 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       openFile: (file) => {
-        const previous = get().source;
-        if (previous) URL.revokeObjectURL(previous.url);
+        get().source?.release();
         get().el?.pause();
         set({
-          source: { file, url: URL.createObjectURL(file) },
+          source: { file, ...openVideoStream(file) },
           ...initialMedia
         });
       },
 
       closeVideo: () => {
-        const previous = get().source;
-        if (previous) URL.revokeObjectURL(previous.url);
+        get().source?.release();
         get().el?.pause();
         set({ source: null, ...initialMedia });
       },

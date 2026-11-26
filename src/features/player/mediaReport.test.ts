@@ -294,19 +294,25 @@ describe("formatReport", () => {
     userAgent: "Mozilla/5.0 (Macintosh)",
     touchPoints: 5,
     file: { name: "cage-04.MOV", type: "video/quicktime", size: 1_440_265_648 },
+    source: "service worker",
     snapshot: playing,
     events: [{ ...event("waiting", 7.25), count: 1 }]
   };
 
-  it("names the page, version, browser and file", () => {
+  it("names the page, version, browser, file and how it is loaded", () => {
     const lines = formatReport(base).split("\n");
 
-    expect(lines.slice(0, 4)).toEqual([
+    expect(lines.slice(0, 5)).toEqual([
       "Video Keypress media report",
       "Page: app · version 2.0.0",
       "Browser: Mozilla/5.0 (Macintosh) · 5 touch points",
-      "File: cage-04.MOV · video/quicktime · 1.4 GB"
+      "File: cage-04.MOV · video/quicktime · 1.4 GB",
+      "Source: service worker"
     ]);
+  });
+
+  it("says no source before a video is loaded", () => {
+    expect(formatReport({ ...base, source: null })).toContain("Source: none");
   });
 
   it("includes the media state and every logged event", () => {

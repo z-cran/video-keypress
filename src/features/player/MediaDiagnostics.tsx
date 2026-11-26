@@ -50,6 +50,8 @@ const LOGGED = [
 interface MediaDiagnosticsProps {
   el: HTMLMediaElement | null;
   file: FileInfo | null;
+  /** How the video is loaded, for the report. */
+  source: string | null;
   /** Names the page in the report: the app or the bare media check. */
   page: string;
 }
@@ -58,6 +60,7 @@ interface MediaDiagnosticsProps {
 export default function MediaDiagnostics({
   el,
   file,
+  source,
   page
 }: MediaDiagnosticsProps) {
   const [snapshot, setSnapshot] = useState<MediaSnapshot | null>(null);
@@ -100,6 +103,7 @@ export default function MediaDiagnostics({
       userAgent: navigator.userAgent,
       touchPoints: navigator.maxTouchPoints,
       file,
+      source,
       snapshot,
       events
     });
@@ -227,6 +231,7 @@ export default function MediaDiagnostics({
 export function PlayerMediaDiagnostics() {
   const el = usePlayerStore((s) => s.el);
   const file = usePlayerStore((s) => s.source?.file ?? null);
+  const via = usePlayerStore((s) => s.source?.via ?? null);
   if (!urlFlags(window.location.search).debugMedia) return null;
-  return <MediaDiagnostics el={el} file={file} page="app" />;
+  return <MediaDiagnostics el={el} file={file} source={via} page="app" />;
 }

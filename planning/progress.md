@@ -2,6 +2,20 @@
 
 Track implementation as Work Units. Each Work Unit maps to a plan in `planning/`. Newest work first.
 
+## Large video playback: 2026-11-26
+
+Plan: `planning/large-video-playback.md`. Approved 2026-11-26. Branch `large-video-playback`.
+
+Deviations from the plan:
+
+- `MAX_RANGE_BYTES` is 4 MiB, not 8 MiB. In the production build on the iPadOS simulator, with the 4 GB, 45 Mbps file, a seek to 10:00 took 0.5 s at 4 MiB and 8.6 s at 8 MiB (one run each). Playback stayed 5 to 8 s ahead at 4 MiB.
+
+- [x] WU1: `videoStream.ts`: range planning, headers, URLs and messages, with Node tests.
+- [x] WU2: `videoWorker.ts` and the `video-sw.js` build entry, with fake-scope tests.
+- [x] WU3: Page side: registration, `openVideoStream`, player store, diagnostics source, media check choice.
+- [x] WU4: Docs (ADR-017, SUMMARY, PATTERNS, AGENTS.md, README) and the simulator check of the production build. Fresh iPad simulator: the app registered the worker, played the 4 GB file from `__video/` with no stalls, and seeked to 10:00 in 0.5 s.
+- [ ] WU5: The reporter confirms on a real iPad with `GX010969.mp4`.
+
 ## iPad video stall: 2026-11-26
 
 Plan: `planning/ipad-video-stall.md`. Approved 2026-11-26. Branch `video-freezing`.
@@ -14,8 +28,8 @@ Deviations from the plan:
 
 - [x] WU1: Media diagnostics (`?debug=media`) and the bare media check page (`?mediacheck`). Checked in the iPadOS 18.4 simulator.
 - [x] WU2: Stop rewriting unchanged player prefs to localStorage on every player update. Simulator harness: 0 writes during playback (was about 14 a second).
-- [ ] WU3: Reporters run the on-device protocol on an iPad with a Photos video; attach both reports.
-- [ ] WU4: Write the fix plan from the reports.
+- [x] WU3: Reporters run the on-device protocol on an iPad with a Photos video; attach both reports. Both stalled on a 4.0 GB GoPro chapter (app at 0:07.3, bare player at 0:04.5): WebKit, not the app.
+- [x] WU4: Write the fix plan from the reports: `planning/large-video-playback.md`.
 
 ## v2 rebuild: 2026-10-20
 
