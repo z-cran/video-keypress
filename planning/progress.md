@@ -2,6 +2,21 @@
 
 Track implementation as Work Units. Each Work Unit maps to a plan in `planning/`. Newest work first.
 
+## iPad video stall: 2026-11-26
+
+Plan: `planning/ipad-video-stall.md`. Approved 2026-11-26. Branch `video-freezing`.
+
+Deviations from the plan:
+
+- The pure module is `mediaReport.ts` (not `mediaDiagnostics.ts`), so it does not differ from `MediaDiagnostics.tsx` only by case on macOS.
+- The storage wrapper is `skipUnchangedWrites` (not `dedupeStorage`). It compares with the stored value, not a cache, so it cannot go stale.
+- The report includes `navigator.maxTouchPoints`, because iPad Safari sends a Mac user agent.
+
+- [x] WU1: Media diagnostics (`?debug=media`) and the bare media check page (`?mediacheck`). Checked in the iPadOS 18.4 simulator.
+- [x] WU2: Stop rewriting unchanged player prefs to localStorage on every player update. Simulator harness: 0 writes during playback (was about 14 a second).
+- [ ] WU3: Reporters run the on-device protocol on an iPad with a Photos video; attach both reports.
+- [ ] WU4: Write the fix plan from the reports.
+
 ## v2 rebuild: 2026-10-20
 
 Plan: `planning/v2-rebuild.md`. Approved 2026-10-20. Branch `v2-rebuild`. One commit per Work Unit; not pushed.
